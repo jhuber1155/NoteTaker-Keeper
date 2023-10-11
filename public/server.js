@@ -1,16 +1,19 @@
 const express = require('express');
 const fs = require('fs')
+// const { readFromFile, writeToFile, readAndAppend } = require("./../helpers/fsUtils")
 const path = require('path');
 const uuid = require("./../helpers/uuid")
 const noteData = require("./../db/db.json")
-
+//const api = require("./routes/index.js")
 
 const app = express();
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001;
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+//app.use("/api", api);
 
 app.get('/' ,(req, res) => {
     res.sendFile(path.join(__dirname, '/index.html'))
@@ -20,7 +23,7 @@ app.get('/api/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/notes.html'))
 });
 
-app.get('/api/notes/:id', (req, res) => {
+app.get('/api/notes/:id', (req, res) => { /// notes router
     console.log(req.params)
     const requestedNote = req.params.id;
     for (let i = 0; i < noteData.length; i++){
@@ -39,7 +42,7 @@ app.get('*', (req, res) => {
 
 
 
-app.post('/api/notes', (req, res) => {
+app.post('/api/notes', (req, res) => { ///notes router
 console.log(req.body);
 const { title, text } = req.body;
 
