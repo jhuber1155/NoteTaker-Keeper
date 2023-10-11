@@ -23,16 +23,14 @@ app.get('/api/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/notes.html'))
 });
 
-app.get('/api/notes/:id', (req, res) => { /// notes router
-    console.log(req.params)
-    const requestedNote = req.params.id;
-    for (let i = 0; i < noteData.length; i++){
-        if(requestedNote === noteData[i].id){
-        return res.json(noteData[i]);
-    }
-}
-return res.json('No such note found');
-});
+app.get('/api/notes/:note_id', (req, res) => { /// notes router
+    const noteId = req.params.note_id;
+    readFromFile('./db/db.json')
+    .then((data) => json.parse (data))
+    .then((json) => {
+        const result = json.filter((note) => note.note_id === noteId);
+        return result.length > 0 ? res.json(result) : res.json("No note with that ID exists");
+    });
 
 app.get('/db', (req, res) => res.json(noteData));
 
@@ -40,44 +38,38 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '/index.html'))
 });
 
-
-
-app.post('/api/notes', (req, res) => { ///notes router
-console.log(req.body);
-const { title, text } = req.body;
-
-    if (title && text){
-        const newNote = {
-         title,
-         text,
-         note_id: uuid()
-        };
-
-        const noteString = JSON.stringify(newNote);
-
-        fs.readFile('./db/db.json', 'utf8', (err, data) => {
-         if (err) {
-            console.error(err);
-         }else{
-            const parsedNotes = JSON.parse(data);
-            parsedNotes.push(newNote);
-            }
- 
-
-        fs.writeFile('./db/db.json', JSON.stringify(parsedNotes, null, 4), 
-        (writeErr) => err ? console.err(writeErr) : console.log( 'Note has been written to JSON file'));
+app.delete('/api/notes/:note_id', (req, res) => {
+    const noteId = req.params.note_id;
+    readFromFile('./db/db.json')
+    .then((data) => JSON.parse (data))
+    .then((json) => {
+        const result = json.filter((note) => note.note_id !== noteId);
+        writeToFile('./db/db.json', result);
+        res.json(`Note ${noteid} has been deleted`)
         })
-        const response = {
-            status: 'success',
-            body: newNote,
-        };
-        res.status(201).json(response);
-    }else{
-        res.status(500).json('Error occurred when posting a note');
-    }
+    })
+
+return res.json('No such note found');
 });
 
 
 
+app.post('/api/notes', (req, res) => { ///notes router
+    console.log(req.body);
+    const { title, text } = req.body;
+    
+        if (title && text){
+            const newNote = {
+             title,
+             text,
+             note_id: uuid()
+            };
+    
+            readAndAppend(newNote, './db/db.json');
+            res.json(`Note added successfully`);
+        }else{
+            res.errored('Error occurred when writing Note');
+        }
+        });
 
 app.listen(PORT, () => console.log(`Server listening at http://localhost:${PORT}`));
