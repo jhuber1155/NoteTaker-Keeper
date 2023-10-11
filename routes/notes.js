@@ -17,12 +17,14 @@ notes.get('/:note_id', (req, res) => {//
     });
 });
 
-notes.delete('/:note_id', (req, res) => {//
-    const noteId = req.params.note_id;
+notes.delete('/:id', (req, res) => {//
+    const noteId = req.params.id;
+    console.log(noteId)
     readFromFile('./db/notes.json')
     .then((data) => JSON.parse (data))
     .then((json) => {
-        const result = json.filter((note) => note.note_id !== noteId);
+        const result = json.filter((note) => note.id !== noteId);
+        console.log(result)
         writeToFile('./db/notes.json', result);
         res.json(`Note ${noteId} has been deleted`)
         });
@@ -37,7 +39,7 @@ notes.post('/', (req, res) => {//
             const newNote = {
              title,
              text,
-             note_id: uuid()
+             id: uuid()
             };
     
             readAndAppend(newNote, './db/notes.json');
