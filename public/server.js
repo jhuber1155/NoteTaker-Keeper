@@ -1,6 +1,6 @@
 const express = require('express');
 const fs = require('fs')
-// const { readFromFile, writeToFile, readAndAppend } = require("./../helpers/fsUtils")
+const { readFromFile, writeToFile, readAndAppend } = require("./../helpers/fsUtils")
 const path = require('path');
 const uuid = require("./../helpers/uuid")
 const noteData = require("./../db/db.json")
@@ -12,18 +12,18 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.static('public'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
 //app.use("/api", api);
 
 app.get('/' ,(req, res) => {
     res.sendFile(path.join(__dirname, '/index.html'))
 });
 
-app.get('/api/notes', (req, res) => {
+app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/notes.html'))
 });
 
-app.get('/api/notes/:note_id', (req, res) => { /// notes router
+app.get('/notes/:note_id', (req, res) => { /// notes router
     const noteId = req.params.note_id;
     readFromFile('./db/db.json')
     .then((data) => json.parse (data))
@@ -31,6 +31,7 @@ app.get('/api/notes/:note_id', (req, res) => { /// notes router
         const result = json.filter((note) => note.note_id === noteId);
         return result.length > 0 ? res.json(result) : res.json("No note with that ID exists");
     });
+});
 
 app.get('/db', (req, res) => res.json(noteData));
 
@@ -38,7 +39,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '/index.html'))
 });
 
-app.delete('/api/notes/:note_id', (req, res) => {
+app.delete('/notes/:note_id', (req, res) => {
     const noteId = req.params.note_id;
     readFromFile('./db/db.json')
     .then((data) => JSON.parse (data))
@@ -47,14 +48,10 @@ app.delete('/api/notes/:note_id', (req, res) => {
         writeToFile('./db/db.json', result);
         res.json(`Note ${noteid} has been deleted`)
         })
+        return res.json('No such note found');
     })
 
-return res.json('No such note found');
-});
-
-
-
-app.post('/api/notes', (req, res) => { ///notes router
+app.post('/notes', (req, res) => { ///notes router
     console.log(req.body);
     const { title, text } = req.body;
     
